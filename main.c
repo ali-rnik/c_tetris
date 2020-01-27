@@ -61,7 +61,7 @@ int sig = 65;
 struct Piece cur_piece;
 int game_finished = 0;
 pthread_mutex_t mutex_ge;
-struct Piece tree, corn;
+struct Piece tree, corn, dick;
 struct Game game;
 struct Player player;
 
@@ -81,9 +81,15 @@ int main()
 	corn.tile[0].x = 0 + corn.center.x, corn.tile[0].y = 1 + corn.center.y;
 	corn.tile[1].x = 1 + corn.center.x, corn.tile[1].y = 0 + corn.center.y;
 
+	dick.tiles_count = 2;
+	dick.center.x = 0, dick.center.y = 0;
+	dick.tile[0].x = -1 + dick.center.x, dick.tile[0].y = 0 + dick.center.y;
+	dick.tile[1].x = 1 + dick.center.x, dick.tile[1].y = 0 + dick.center.y;
+
 	game.pieces[0] = tree;
 	game.pieces[1] = corn;
-	game.pieces_count = 2;
+	game.pieces[2] = dick;
+	game.pieces_count = 3;
 	game.height = 15;
 	game.width = 10;
 	game.speed = 1;
@@ -113,13 +119,14 @@ void start()
 		if (sig == 'h') {
 			piece_move(LEFT);
 			board_show();
-		}
-		else if (sig == 'l') {
+		} else if (sig == 'l') {
 			piece_move(RIGHT);
 			board_show();
-		}
-		else if (sig == 'j') {
+		} else if (sig == 'k') {
 			piece_move(ROTATE);
+			board_show();
+		} else if (sig == 'j') {
+			piece_move(DOWN);
 			board_show();
 		}
 	}
@@ -144,10 +151,10 @@ int piece_insert()
 
 void piece_install()
 {
-	game.board[cur_piece.center.y][cur_piece.center.x] = '*';
+	game.board[cur_piece.center.y][cur_piece.center.x] = '0';
 	for (int i = 0; i < cur_piece.tiles_count; i++) {
 		game.board[cur_piece.tile[i].y + cur_piece.center.y]
-			[cur_piece.tile[i].x + cur_piece.center.x] = '*';
+			[cur_piece.tile[i].x + cur_piece.center.x] = '0';
 	}
 }
 
@@ -175,7 +182,7 @@ int check()
 
 	if (y > game.height-1 || y < 0 || x > game.width-1 || x < 0)
 		return 0;
-	if (game.board[y][x] == '*')
+	if (game.board[y][x] == '0')
 		return 0;
 
 	for (int i = 0; i < cur_piece.tiles_count; i++) {
@@ -186,7 +193,7 @@ int check()
 			x + xtile > game.width-1 || x + xtile < 0)
 			return 0;
 		if (game.board[cur_piece.tile[i].y + y]
-			[cur_piece.tile[i].x + x] == '*')
+			[cur_piece.tile[i].x + x] == '0')
 			return 0;
 	}
 
@@ -258,7 +265,24 @@ int piece_move(enum Direction dir)
 	if (dir == RIGHT)
 		cur_piece.center.x += 1;
 	if (dir == ROTATE) {
-		
+		for (int i = 0; i < cur_piece.tiles_count; i++) {
+			int x = cur_piece.tile[i].x;
+			int y = cur_piece.tile[i].y;
+
+			if (x == 0 && y == 1) {
+				cur_piece.tile[i].x = 1;
+				cur_piece.tile[i].y = 0;
+			} else if (x == 1 && y == 0) {
+				cur_piece.tile[i].x = 0;
+				cur_piece.tile[i].y = -1;
+			} else if (x == 0 && y == -1) {
+				cur_piece.tile[i].x = -1;
+				cur_piece.tile[i].y = 0;
+			} else if (x == -1 && y == 0) {
+				cur_piece.tile[i].x = 0;
+				cur_piece.tile[i].y = 1;
+			}
+		}
 	}
 
 	if (!check()) {
@@ -268,6 +292,27 @@ int piece_move(enum Direction dir)
 			cur_piece.center.x += 1;
 		if (dir == RIGHT)
 			cur_piece.center.x -= 1;
+		if (dir == ROTATE) {
+			for (int i = 0; i < cur_piece.tiles_count; i++) {
+				int x = cur_piece.tile[i].x;
+				int y = cur_piece.tile[i].y;
+
+				if (x == 1 && y == 0) {
+					cur_piece.tile[i].x = 0;
+					cur_piece.tile[i].y = 1;
+				} else if (x == 0 && y == -1) {
+					cur_piece.tile[i].x = 1;
+					cur_piece.tile[i].y = 0;
+				} else if (x == -1 && y == 0) {
+					cur_piece.tile[i].x = 0;
+					cur_piece.tile[i].y = -1;
+				} else if (x == 0 && y == 1) {
+					cur_piece.tile[i].x = -1;
+					cur_piece.tile[i].y = 0;
+				}
+			}
+		}
+
 		piece_install();
 		return 0;
 	}
@@ -276,10 +321,3 @@ int piece_move(enum Direction dir)
 
 	return 1;
 }
-
-
-
-
-
-
-
