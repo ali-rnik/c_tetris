@@ -95,7 +95,7 @@ int main()
 	game.speed = 1;
 	for (int i = 0; i < game.height; i++) {
 		for (int j = 0; j < game.width; j++) {
-			game.board[i][j] = '-';
+			game.board[i][j] = '.';
 		}
 	}
 
@@ -160,10 +160,10 @@ void piece_install()
 
 void piece_delete()
 {
-	game.board[cur_piece.center.y][cur_piece.center.x] = '-';
+	game.board[cur_piece.center.y][cur_piece.center.x] = '.';
 	for (int i = 0; i < cur_piece.tiles_count; i++) {
 		game.board[cur_piece.tile[i].y + cur_piece.center.y]
-			[cur_piece.tile[i].x + cur_piece.center.x] = '-';
+			[cur_piece.tile[i].x + cur_piece.center.x] = '.';
 	}
 }
 
@@ -171,7 +171,6 @@ int roll_dice(int pieces_count)
 {
 	srand(time(NULL));
 	int random = rand() % pieces_count;
-	printf("%d", random);
 	return random;
 }
 
@@ -203,7 +202,7 @@ int check()
 void merge_and_score()
 {
 	for (int i = 0; i < game.width; i++)
-		if (game.board[game.height-1][i] == '-')
+		if (game.board[game.height-1][i] == '.')
 			return;
 
 	player.current_score += 2;
